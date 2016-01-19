@@ -68,6 +68,17 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="fragmentShader.glsl" />
+    <None Include="vertexShader.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="glmUtils465.hpp" />
+    <ClInclude Include="includes.hpp" />
+    <ClInclude Include="shader465.hpp" />
+    <ClInclude Include="texture.hpp" />
+    <ClInclude Include="triModel465.hpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
