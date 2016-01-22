@@ -26,22 +26,25 @@
     <None Include="fragmentShader.glsl">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="ImageEX.raw">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="includes.hpp">
-      <Filter>Resource Files</Filter>
-    </ClInclude>
     <ClInclude Include="glmUtils465.hpp">
-      <Filter>Resource Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="includes.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="shader465.hpp">
-      <Filter>Resource Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="texture.hpp">
-      <Filter>Resource Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="triModel465.hpp">
-      <Filter>Resource Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="fragmentShader.glsl" />
+    <None Include="ImageEX.raw" />
     <None Include="vertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>

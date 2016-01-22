@@ -47,7 +47,8 @@ Author: Joseph Hoxsey
 # include <glm/gtc/type_ptr.hpp>
 # include "glmUtils465.hpp"  // print matrices and vectors, ... 
 # include "shader465.hpp"    // load vertex and fragment shaders
-# include "triModel465.hpp"  // load AC3D *.tri model 
+# include "triModel465.hpp"  // load AC3D *.tri model
+# include "texture.hpp"  // load texture
 # endif
 
 # ifdef __Xcode__      

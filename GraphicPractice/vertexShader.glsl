@@ -14,20 +14,17 @@ void main() {
 }
 */
 
-# version 330 core
+#version 330 core
 
-layout (location = 0) in vec4 vPosition;
-layout (location = 1) in vec2 vTexCoord;
+in vec4 vPosition;
+in vec4 vColor;
 
-uniform mat4 MVP;
+uniform mat4 ModelViewProject;
+out vec4 color;
 
-out vec2 vs_texCoord;
-out vec3 vs_worldpos;
+void main()	{
+	color = vColor;
+	gl_Position = ModelViewProject * vPosition;
 
-void main(void) {
-	vec4 position = MVP * vPosition;
-	gl_Position = position;
-	vs_worldpos = position.xyz;
-	vs_texCoord = vTexCoord;
+
 }
-

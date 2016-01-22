@@ -18,6 +18,8 @@ using namespace glm;
 int windowsHeight = 600;
 int windowsWidth = 800;
 
+int index = 0;
+
 // display state and "state strings" for title display
 // window title strings
 char baseStr[50] = "Graphics : ";
@@ -25,13 +27,17 @@ char fpsStr[15], viewStr[15] = "NULL";
 char titleStr[100];
 
 const int nObject = 2;
-
-GLuint VAO[nObject];
-GLuint buffer[nObject];
+GLuint vao, vbo, ibo;
 GLuint shaderProgram;
 GLuint MVP;
-GLuint vPosition[nObject], vColor[nObject], vNormal[nObject];
-GLuint Position[nObject], Color[nObject], Normal[nObject];
+GLuint vPosition, vColor, vNormal;
+GLuint Position, Color, Normal;
+GLuint Texture;
+GLuint texture;
+GLuint MV;
+const GLuint NumVertices = 18;
+
+char * textureFilename = "ImageEX.raw";
 
 char * vertexShaderFile = "VertexShader.glsl";
 char * fragmentShaderFile = "FragmentShader.glsl";
@@ -39,27 +45,104 @@ char * fragmentShaderFile = "FragmentShader.glsl";
 mat4 pMatrix;	// projection matrix
 mat4 vMatrix;	// view matrix
 mat4 mMatrix;	// model matrix
+mat3 nMatrix;
 mat4 mvpMatrix;	// model view projection matrix
+mat4 mvMatrix;	// model view projection matrix
 
 vec3 eye, at, up;
+
+vec4 point[NumVertices];
+vec4 diffuseColorMaterial[NumVertices];
+
+vec4 const vertex_positions[5] = {
+	glm::vec4(-5.0f, -8.0f, 5.0f, 1.0f), // 0 front left bottom 
+	glm::vec4(5.0f, -8.0f, 5.0f, 1.0f), // 1 front right bottom
+	glm::vec4(5.0f, -8.0f, -5.0f, 1.0f), // 2 back right bottom
+	glm::vec4(-5.0f, -8.0f, -5.0f, 1.0f), // 3 back left bottom
+	glm::vec4(0.0f, 8.0f, 0.0f, 1.0f), // 4 apex
+};
+
+// RGBA colors for each vertex
+vec4 const vertex_color[5] = {
+	glm::vec4(1.0f, 0.0f, 0.0f, 1.0f),  // 0, red
+	glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),  // 1, green
+	glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),  // 2, blue
+	glm::vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 3, light gray
+	glm::vec4(0.8f, 0.8f, 0.8f, 1.0f)   // 4, light gray
+};
+
+// Make a triagle surface by vertex reference
+void triangle(int a, int b, int c) {
+	point[index] = vertex_positions[a]; diffuseColorMaterial[index] = vertex_color[a]; index++;
+	point[index] = vertex_positions[b]; diffuseColorMaterial[index] = vertex_color[b]; index++;
+	point[index] = vertex_positions[c]; diffuseColorMaterial[index] = vertex_color[c]; index++;
+};
+
+void pyramid() {
+	triangle(0, 1, 4); // Front Face
+	triangle(1, 2, 4); // Right Face 
+	triangle(2, 3, 4); // Back Face
+	triangle(3, 0, 4); // Left Face
+	triangle(0, 2, 1); // Bottom Face front
+	triangle(0, 3, 2); // Bottom Face back
+};
 
 int timerDelay = 40, frameCount = 0;
 double currentTime, lastTime, timeInterval;
 
 // values for the time quantum
 int timerMode = 0;
+
 const int timeQuantum[4] = {
 	40,	//ace
 	100,	// pilot
 	1000,	//250 trainee
-	5000,	// 500 debug
+	5000	// 500 debug
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static const GLfloat g_vertex_buffer_data[] = {
+	-1.0f, -1.0f, 0.0f,
+	1.0f, -1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f
+};
 
 void init()	{
+	shaderProgram = loadShaders(vertexShaderFile, fragmentShaderFile);
+	glUseProgram(shaderProgram);
 
+	pyramid();
+	
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 
+	// Create and init a buffer object
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(point) + sizeof(diffuseColorMaterial), NULL, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(point), point);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(point), sizeof(diffuseColorMaterial), diffuseColorMaterial);
+
+	// set up vertex arrays (after shaders are loaded)
+	vPosition = glGetAttribLocation(shaderProgram, "vPosition");
+	glEnableVertexAttribArray(vPosition);
+	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+
+	vColor = glGetAttribLocation(shaderProgram, "vColor");
+	glEnableVertexAttribArray(vColor);
+	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(point)));
+
+	// initially use a front view
+	eye = glm::vec3(0.0f, 0.0f, 70.0f);   // eye is 50 "out of screen" from origin
+	at = glm::vec3(0.0f, 0.0f, 0.0f);   // looking at origin
+	up = glm::vec3(0.0f, 1.0f, 0.0f);   // camera'a up vector
+
+	glEnable(GL_DEPTH_TEST);
+
+	// set the background to white
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+	// get elapsed system time
+	lastTime = glutGet(GLUT_ELAPSED_TIME);
 }
 
 void reshape(int width, int height) {
@@ -78,7 +161,11 @@ void updateTitle() {
 void display(void) {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	mvMatrix = lookAt(eye, at, up);
+	mvpMatrix = pMatrix * mvMatrix;
+	glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
+	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
 	glutSwapBuffers();
 	frameCount++;
