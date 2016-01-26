@@ -35,7 +35,7 @@ GLuint Position, Color, Normal;
 GLuint Texture;
 GLuint texture;
 GLuint MV;
-const GLuint NumVertices = 18;
+const GLuint NumVertices = 36;
 
 char * textureFilename = "ImageEX.raw";
 
@@ -54,28 +54,35 @@ vec3 eye, at, up;
 vec4 point[NumVertices];
 vec4 diffuseColorMaterial[NumVertices];
 
-vec4 const vertex_positions[5] = {
-	glm::vec4(-5.0f, -8.0f, 5.0f, 1.0f), // 0 front left bottom 
-	glm::vec4(5.0f, -8.0f, 5.0f, 1.0f), // 1 front right bottom
-	glm::vec4(5.0f, -8.0f, -5.0f, 1.0f), // 2 back right bottom
-	glm::vec4(-5.0f, -8.0f, -5.0f, 1.0f), // 3 back left bottom
-	glm::vec4(0.0f, 8.0f, 0.0f, 1.0f), // 4 apex
+vec4 const vertex_positions[8] = {
+	vec4(-5.0f, -8.0f, 5.0f, 1.0f), // 0 front left bottom 
+	vec4(5.0f, -8.0f, 5.0f, 1.0f), // 1 front right bottom
+	vec4(5.0f, -8.0f, -5.0f, 1.0f), // 2 back right bottom
+	vec4(-5.0f, -8.0f, -5.0f, 1.0f), // 3 back left bottom
+	//glm::vec4(0.0f, 8.0f, 0.0f, 1.0f), // 4 apex
+	vec4(-5.0f, 8.0f, 5.0f, 1.0f), // 0 front left bottom 
+	vec4(5.0f, 8.0f, 5.0f, 1.0f), // 1 front right bottom
+	vec4(5.0f, 8.0f, -5.0f, 1.0f), // 2 back right bottom
+	vec4(-5.0f, 8.0f, -5.0f, 1.0f), // 3 back left bottom
 };
 
 // RGBA colors for each vertex
-vec4 const vertex_color[5] = {
-	glm::vec4(1.0f, 0.0f, 0.0f, 1.0f),  // 0, red
-	glm::vec4(0.0f, 1.0f, 0.0f, 1.0f),  // 1, green
-	glm::vec4(0.0f, 0.0f, 1.0f, 1.0f),  // 2, blue
-	glm::vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 3, light gray
-	glm::vec4(0.8f, 0.8f, 0.8f, 1.0f)   // 4, light gray
+vec4 const vertex_color[8] = {
+	vec4(1.0f, 0.0f, 0.0f, 1.0f),  // 0, red
+	vec4(0.0f, 1.0f, 0.0f, 1.0f),  // 1, green
+	vec4(0.0f, 0.0f, 1.0f, 1.0f),  // 2, blue
+	vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 3, light gray
+	vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 4, light gray
+	vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 3, light gray
+	vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 3, light gray
+	vec4(0.8f, 0.8f, 0.8f, 1.0f)   // 4, light gray
 };
 
 // Make a triagle surface by vertex reference
 void triangle(int a, int b, int c) {
-	point[index] = vertex_positions[a]; diffuseColorMaterial[index] = vertex_color[a]; index++;
-	point[index] = vertex_positions[b]; diffuseColorMaterial[index] = vertex_color[b]; index++;
-	point[index] = vertex_positions[c]; diffuseColorMaterial[index] = vertex_color[c]; index++;
+	point[index] = vertex_positions[a]; diffuseColorMaterial[index] = vertex_color[0]; index++;
+	point[index] = vertex_positions[b]; diffuseColorMaterial[index] = vertex_color[1]; index++;
+	point[index] = vertex_positions[c]; diffuseColorMaterial[index] = vertex_color[2]; index++;
 };
 
 void pyramid() {
@@ -85,6 +92,27 @@ void pyramid() {
 	triangle(3, 0, 4); // Left Face
 	triangle(0, 2, 1); // Bottom Face front
 	triangle(0, 3, 2); // Bottom Face back
+};
+
+void cube() {
+	// bottom plate
+	triangle(0, 1, 2);
+	triangle(0, 3, 2);
+	// W wall
+	triangle(0, 3, 7);
+	triangle(0, 4, 7);
+	// S wall
+	triangle(3, 2, 6);
+	triangle(3, 7, 6);
+	// E wall
+	triangle(1, 2, 6);
+	triangle(1, 5, 6);
+	// N wall
+	triangle(0, 1, 5);
+	triangle(0, 4, 5);
+	// top plate
+	triangle(4, 5, 6);
+	triangle(4, 7, 6);
 };
 
 int timerDelay = 40, frameCount = 0;
@@ -110,8 +138,8 @@ void init()	{
 	shaderProgram = loadShaders(vertexShaderFile, fragmentShaderFile);
 	glUseProgram(shaderProgram);
 
-	pyramid();
-	
+	//pyramid();
+	cube();
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
@@ -189,6 +217,31 @@ void updateMouseMovement()	{
 void keyboard(unsigned char key, int x, int y) {
 	switch (key) {
 	case 033: case 'q':  case 'Q': exit(EXIT_SUCCESS); break;
+	case 'b': case 'B':  // bottom view
+		eye = glm::vec3(0.0f, -50.0f, 0.0f);   // eye is -50 "into screen" from origin
+		at = glm::vec3(0.0f, 0.0f, 0.0f);   // looking at origin
+		up = glm::vec3(0.0f, 0.0f, -1.0f);  // camera'a up vector
+		strcpy(viewStr, " bottom view"); break;
+	case 'f': case 'F':  // front view
+		eye = glm::vec3(0.0f, 0.0f, 50.0f);   // eye is 50 "out of screen" from origin
+		at = glm::vec3(0.0f, 0.0f, 0.0f);   // looking at origin
+		up = glm::vec3(0.0f, 1.0f, 0.0f);   // camera'a up vector
+		strcpy(viewStr, " front view"); break;
+	case 'l': case 'L':  // left view
+		eye = glm::vec3(-50.0f, 0.0f, 0.0f);   // eye is 50 "out of screen" from origin
+		at = glm::vec3(0.0f, 0.0f, 0.0f);   // looking at origin
+		up = glm::vec3(0.0f, 1.0f, 0.0f);   // camera'a up vector
+		strcpy(viewStr, " left view"); break;
+	case 'r': case 'R':  // right view
+		eye = glm::vec3(50.0f, 0.0f, 0.0f);   // eye is 50 "out of screen" from origin
+		at = glm::vec3(0.0f, 0.0f, 0.0f);   // looking at origin
+		up = glm::vec3(0.0f, 1.0f, 0.0f);   // camera's up vector  
+		strcpy(viewStr, " right view"); break;
+	case 't': case 'T':  // right view
+		eye = glm::vec3(0.0f, 50.0f, 0.0f);   // eye is 50  up from origin
+		at = glm::vec3(0.0f, 0.0f, 0.0f);   // looking at origin
+		up = glm::vec3(0.0f, 0.0f, -1.0f);   // camera's up is looking towards -Z vector
+		strcpy(viewStr, " top view"); break;
 	}
 	updateTitle();
 }
