@@ -55,15 +55,15 @@ vec4 point[NumVertices];
 vec4 diffuseColorMaterial[NumVertices];
 
 vec4 const vertex_positions[8] = {
-	vec4(-5.0f, -8.0f, 5.0f, 1.0f), // 0 front left bottom 
-	vec4(5.0f, -8.0f, 5.0f, 1.0f), // 1 front right bottom
-	vec4(5.0f, -8.0f, -5.0f, 1.0f), // 2 back right bottom
-	vec4(-5.0f, -8.0f, -5.0f, 1.0f), // 3 back left bottom
-	//glm::vec4(0.0f, 8.0f, 0.0f, 1.0f), // 4 apex
-	vec4(-5.0f, 8.0f, 5.0f, 1.0f), // 0 front left bottom 
-	vec4(5.0f, 8.0f, 5.0f, 1.0f), // 1 front right bottom
-	vec4(5.0f, 8.0f, -5.0f, 1.0f), // 2 back right bottom
-	vec4(-5.0f, 8.0f, -5.0f, 1.0f), // 3 back left bottom
+	// (x,y,z)
+	vec4(-5.0f, -8.0f, 5.0f, 1.0f),
+	vec4(5.0f, -8.0f, 5.0f, 1.0f),
+	vec4(5.0f, -8.0f, -5.0f, 1.0f),
+	vec4(-5.0f, -8.0f, -5.0f, 1.0f),
+	vec4(-5.0f, 8.0f, 5.0f, 1.0f),
+	vec4(5.0f, 8.0f, 5.0f, 1.0f),
+	vec4(5.0f, 8.0f, -5.0f, 1.0f),
+	vec4(-5.0f, 8.0f, -5.0f, 1.0f),
 };
 
 // RGBA colors for each vertex
