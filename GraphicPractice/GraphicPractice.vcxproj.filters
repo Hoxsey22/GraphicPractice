@@ -29,6 +29,9 @@
     <None Include="ImageEX.raw">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="SpaceX.raw">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glmUtils465.hpp">

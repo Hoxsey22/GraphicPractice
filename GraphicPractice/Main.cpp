@@ -10,8 +10,11 @@ Created: 01/19/16
 # include "includes.hpp"
 # define __INCLUDES__
 # endif
+#include <iostream>
 
 using namespace glm;
+
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 //////////////////////////////////////////	Global Variables	/////////////////////////////////////////////
 // initialze the size of the window
@@ -30,11 +33,8 @@ const int nObject = 2;
 GLuint vao, vbo, ibo;
 GLuint shaderProgram;
 GLuint MVP;
-GLuint vPosition, vColor, vNormal;
+GLuint positionID, colorID, normalID;
 GLuint Position, Color, Normal;
-GLuint Texture;
-GLuint texture;
-GLuint MV;
 const GLuint NumVertices = 36;
 
 char * textureFilename = "ImageEX.raw";
@@ -55,15 +55,14 @@ vec4 point[NumVertices];
 vec4 diffuseColorMaterial[NumVertices];
 
 vec4 const vertex_positions[8] = {
-	vec4(-5.0f, -8.0f, 5.0f, 1.0f), // 0 front left bottom 
-	vec4(5.0f, -8.0f, 5.0f, 1.0f), // 1 front right bottom
-	vec4(5.0f, -8.0f, -5.0f, 1.0f), // 2 back right bottom
-	vec4(-5.0f, -8.0f, -5.0f, 1.0f), // 3 back left bottom
-	//glm::vec4(0.0f, 8.0f, 0.0f, 1.0f), // 4 apex
-	vec4(-5.0f, 8.0f, 5.0f, 1.0f), // 0 front left bottom 
-	vec4(5.0f, 8.0f, 5.0f, 1.0f), // 1 front right bottom
-	vec4(5.0f, 8.0f, -5.0f, 1.0f), // 2 back right bottom
-	vec4(-5.0f, 8.0f, -5.0f, 1.0f), // 3 back left bottom
+	vec4(-5.0f, -8.0f, 5.0f, 1.0f),
+	vec4(5.0f, -8.0f, 5.0f, 1.0f),
+	vec4(5.0f, -8.0f, -5.0f, 1.0f),
+	vec4(-5.0f, -8.0f, -5.0f, 1.0f),
+	vec4(-5.0f, 8.0f, 5.0f, 1.0f),
+	vec4(5.0f, 8.0f, 5.0f, 1.0f),
+	vec4(5.0f, 8.0f, -5.0f, 1.0f),
+	vec4(-5.0f, 8.0f, -5.0f, 1.0f), 
 };
 
 // RGBA colors for each vertex
@@ -72,10 +71,6 @@ vec4 const vertex_color[8] = {
 	vec4(0.0f, 1.0f, 0.0f, 1.0f),  // 1, green
 	vec4(0.0f, 0.0f, 1.0f, 1.0f),  // 2, blue
 	vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 3, light gray
-	vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 4, light gray
-	vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 3, light gray
-	vec4(0.8f, 0.8f, 0.8f, 1.0f),  // 3, light gray
-	vec4(0.8f, 0.8f, 0.8f, 1.0f)   // 4, light gray
 };
 
 // Make a triagle surface by vertex reference
@@ -114,6 +109,17 @@ void cube() {
 	triangle(4, 5, 6);
 	triangle(4, 7, 6);
 };
+GLfloat vertices[] = {
+	-0.5f, -0.5f, 0.0f,
+	-0.5f, -0.5f, 0.0f,
+	0.0f, 0.5f, 0.0f
+};
+
+GLfloat colors[] = {
+	1.0f, 0.0f, 0.0f, 1.0f,	// red
+	0.0f, 1.0f, 0.0f, 1.0f,	// blue
+	0.0f, 0.0f, 1.0f, 1.0f	// green
+};
 
 int timerDelay = 40, frameCount = 0;
 double currentTime, lastTime, timeInterval;
@@ -128,46 +134,37 @@ const int timeQuantum[4] = {
 	5000	// 500 debug
 };
 
-static const GLfloat g_vertex_buffer_data[] = {
-	-1.0f, -1.0f, 0.0f,
-	1.0f, -1.0f, 0.0f,
-	0.0f, 1.0f, 0.0f
-};
-
 void init()	{
 	shaderProgram = loadShaders(vertexShaderFile, fragmentShaderFile);
-	glUseProgram(shaderProgram);
-
-	//pyramid();
-	cube();
+	//glUseProgram(shaderProgram);
+	/// Create the "remember all"
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	// Create and init a buffer object
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(point) + sizeof(diffuseColorMaterial), NULL, GL_STATIC_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(point), point);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(point), sizeof(diffuseColorMaterial), diffuseColorMaterial);
+	// Create the buffer, but don't load anything yet
+	glBufferData(GL_ARRAY_BUFFER, 7 * 3 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	// Load the vertex points
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * 3 * sizeof(GLfloat), vertices);
+	// Load the colors right after that
+	glBufferSubData(GL_ARRAY_BUFFER, 3 * 3 * sizeof(GLfloat), 3 * 4 * sizeof(GLfloat), colors);
 
-	// set up vertex arrays (after shaders are loaded)
-	vPosition = glGetAttribLocation(shaderProgram, "vPosition");
-	glEnableVertexAttribArray(vPosition);
-	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+	// Find the position of the variables in the shader
+	positionID = glGetAttribLocation(shaderProgram, "vPosition");
+	colorID = glGetAttribLocation(shaderProgram, "vColor");
 
-	vColor = glGetAttribLocation(shaderProgram, "vColor");
-	glEnableVertexAttribArray(vColor);
-	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(point)));
-
-	// initially use a front view
-	eye = glm::vec3(0.0f, 0.0f, 70.0f);   // eye is 50 "out of screen" from origin
-	at = glm::vec3(0.0f, 0.0f, 0.0f);   // looking at origin
-	up = glm::vec3(0.0f, 1.0f, 0.0f);   // camera'a up vector
+	glVertexAttribPointer(positionID, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribPointer(colorID, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(3*3*sizeof(GLfloat)));
+	glUseProgram(shaderProgram);
+	glEnableVertexAttribArray(positionID);
+	glEnableVertexAttribArray(colorID);
+	
 
 	glEnable(GL_DEPTH_TEST);
 
 	// set the background to white
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
 
 	// get elapsed system time
 	lastTime = glutGet(GLUT_ELAPSED_TIME);
@@ -186,15 +183,9 @@ void updateTitle() {
 	glutSetWindowTitle(titleStr);
 }
 
-void display(void) {
-
+void render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	mvMatrix = lookAt(eye, at, up);
-	mvpMatrix = pMatrix * mvMatrix;
-	glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
-
-	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
-
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 	glutSwapBuffers();
 	frameCount++;
 
@@ -283,13 +274,13 @@ int main(int argc, char* argv[])	{
 	// initialize scene
 	init();
 	// set glut callback functions
-	glutDisplayFunc(display);
+	glutDisplayFunc(render);
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
 	glutMouseFunc(mouseClick);
 	glutMotionFunc(mouseMotion);
 	glutTimerFunc(timerDelay, update, 1);
-	glutIdleFunc(display);
+	glutIdleFunc(render);
 	glutMainLoop();
 	printf("done\n");
 	return 0;

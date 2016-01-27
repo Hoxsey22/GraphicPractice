@@ -24,6 +24,7 @@ GLchar * readShaderSource(const char *fileName) {
       }
       else {
          printf("error readShaderSource of %s\n", fileName);
+		 scanf("");
          exit(1); 
          }
    // printf("shader source: allocated %d size %d \n %s\n", shaderLength + 1, strlen(shaderText), shaderText);
@@ -32,10 +33,12 @@ GLchar * readShaderSource(const char *fileName) {
 
 // check create calls
 void checkCreate(GLint object, const char * msg) {
-   if (object == 0) printf("\t failed:  create %s \n", msg);
-   else printf("success:  create %s\n", msg);
-   }
-
+	if (object == 0)	{
+		printf("\t failed:  create %s \n", msg);
+		scanf("");
+	}
+	else printf("success:  create %s\n", msg);
+}
 // check and report status of GLSL functions 
 void checkShaderStatus(GLint object, GLint status, const char * msg) {
    int len;
@@ -44,6 +47,7 @@ void checkShaderStatus(GLint object, GLint status, const char * msg) {
       glGetShaderInfoLog(object, MAX_INFO_LOG_SIZE, &len, infoLog);   
       printf("failed:  %s \n", msg);
       printf("info log:  %s \n", infoLog);
+	  scanf("");
       exit(EXIT_FAILURE);
       }
       else printf("success:  %s\n", msg);
@@ -56,6 +60,7 @@ void checkProgramStatus(GLint object, GLint status, const char * msg) {
       glGetProgramInfoLog(object, MAX_INFO_LOG_SIZE, &len, infoLog);   
       printf("failed:  %s \n", msg);
       printf("info log:  %s \n", infoLog);
+	  scanf("");
       exit(EXIT_FAILURE);
       }
       else printf("success:  %s\n", msg);
