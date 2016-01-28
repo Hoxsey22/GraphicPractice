@@ -23,6 +23,8 @@ int windowsWidth = 800;
 
 int index = 0;
 
+int nIndices = 9;
+
 // display state and "state strings" for title display
 // window title strings
 char baseStr[50] = "Graphics : ";
@@ -35,7 +37,7 @@ GLuint shaderProgram;
 GLuint MVP;
 GLuint positionID, colorID, normalID;
 GLuint Position, Color, Normal;
-const GLuint NumVertices = 36;
+const GLuint NumVertices = 6;
 
 char * textureFilename = "ImageEX.raw";
 
@@ -110,16 +112,24 @@ void cube() {
 	triangle(4, 7, 6);
 };
 GLfloat vertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	-0.5f, -0.5f, 0.0f,
-	0.0f, 0.5f, 0.0f
+	0.0f, 0.5f, 0.0f,
+	-0.25f, 0.0f, 0.0f,
+	0.25f, 0.0f, 0.0f,
+	- 0.5f, -0.5f, 0.0f,
+	0.0f, -0.5f, 0.0f,
+	0.5f, -0.5f, 0.0f
 };
 
 GLfloat colors[] = {
 	1.0f, 0.0f, 0.0f, 1.0f,	// red
 	0.0f, 1.0f, 0.0f, 1.0f,	// blue
+	0.0f, 0.0f, 1.0f, 1.0f,	// green
+	0.0f, 1.0f, 0.0f, 1.0f,	// blue
+	1.0f, 0.0f, 0.0f, 1.0f,	// red
 	0.0f, 0.0f, 1.0f, 1.0f	// green
 };
+
+GLuint indices[] = { 0, 1, 2, 1, 3, 4, 2, 4, 5 };
 
 int timerDelay = 40, frameCount = 0;
 double currentTime, lastTime, timeInterval;
@@ -144,18 +154,23 @@ void init()	{
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	// Create the buffer, but don't load anything yet
-	glBufferData(GL_ARRAY_BUFFER, 7 * 3 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 7 * NumVertices * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 	// Load the vertex points
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * 3 * sizeof(GLfloat), vertices);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * NumVertices * sizeof(GLfloat), vertices);
 	// Load the colors right after that
-	glBufferSubData(GL_ARRAY_BUFFER, 3 * 3 * sizeof(GLfloat), 3 * 4 * sizeof(GLfloat), colors);
+	glBufferSubData(GL_ARRAY_BUFFER, 3 * NumVertices * sizeof(GLfloat), NumVertices * 4 * sizeof(GLfloat), colors);
+
+	// index buffer
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, nIndices * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
 	// Find the position of the variables in the shader
 	positionID = glGetAttribLocation(shaderProgram, "vPosition");
 	colorID = glGetAttribLocation(shaderProgram, "vColor");
 
 	glVertexAttribPointer(positionID, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glVertexAttribPointer(colorID, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(3*3*sizeof(GLfloat)));
+	glVertexAttribPointer(colorID, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(vertices)));
 	glUseProgram(shaderProgram);
 	glEnableVertexAttribArray(positionID);
 	glEnableVertexAttribArray(colorID);
@@ -185,7 +200,7 @@ void updateTitle() {
 
 void render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, NULL );
 	glutSwapBuffers();
 	frameCount++;
 
